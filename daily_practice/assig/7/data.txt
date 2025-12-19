@@ -1,0 +1,2 @@
+2025-12-19 12:45:24 - ID: 23, Temperature: 23.4 °C, Humidity: 25.5%
+2025-12-19 12:45:52 - ID: 33, Temperature: 33.4 °C, Humidity: 35.5%

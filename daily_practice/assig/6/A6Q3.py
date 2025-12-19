@@ -24,9 +24,7 @@ def home():
     </ul>
     """
 
-# -------------------------------
-# Receive Temperature
-# -------------------------------
+
 @app.route('/temperature/<float:temp>', methods=['GET', 'POST'])
 def receive_temperature(temp):
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -34,9 +32,7 @@ def receive_temperature(temp):
         f.write(f"{time} - {temp} °C\n")
     return f"Temperature {temp} °C received and stored"
 
-# -------------------------------
-# Receive Light Intensity
-# -------------------------------
+
 @app.route('/light/<int:light>', methods=['GET', 'POST'])
 def receive_light(light):
     time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -44,9 +40,7 @@ def receive_light(light):
         f.write(f"{time} - {light} lux\n")
     return f"Light Intensity {light} lux received and stored"
 
-# -------------------------------
-# Get Temperature Readings
-# -------------------------------
+
 @app.route('/get_temperature')
 def get_temperature():
     try:
@@ -55,9 +49,7 @@ def get_temperature():
     except:
         return "No temperature data available"
 
-# -------------------------------
-# Get Light Readings
-# -------------------------------
+
 @app.route('/get_light')
 def get_light():
     try:
@@ -66,8 +58,6 @@ def get_light():
     except:
         return "No light data available"
 
-# -------------------------------
-# Run Server
-# -------------------------------
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
