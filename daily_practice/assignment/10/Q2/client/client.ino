@@ -1,33 +1,73 @@
-#include<WiFi.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <DHT.h>
 
-const char *ssid = "SUNBEAM";
-const char *password = "1234567890";
+#define DHTPIN 4
+#define DHTTYPE DHT11
+#define MQ2PIN 34
+
+const char* ssid = "SN";
+const char* password = "1234567890";
+const char* mqtt_server = "broker.emqx.io"; 
+const char* mqtt_topic = "env/data";
+
+DHT dht(DHTPIN, DHTTYPE);
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void setup() {
-  // put your setup code here, to run once:
   Serial.begin(115200);
-
-  WiFi.mode(WIFI_STA);
+  dht.begin();
+  Serial.println(" SMART ENVIRONMENT MONITORING SYSTEM");
+  
+  // WiFi
   WiFi.begin(ssid, password);
-
-  Serial.print("Connecting to WiFi ");
-  while(WiFi.status() != WL_CONNECTED){
+  Serial.print("WiFi Connecting");
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("Connected to WiFi");
-  Serial.print("IP Address : ");
-  Serial.println(WiFi.localIP());
+  Serial.println("\n WiFi Connected: " + WiFi.localIP().toString());
+  
+  // MQTT
+  client.setServer(mqtt_server, 1883);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  if (!client.connected()) {
+    Serial.println(" MQTT Reconnecting...");
+    reconnect();
+  }
+  client.loop();
+  
+  float temp = dht.readTemperature();
+  float hum = dht.readHumidity();
+  int gas = analogRead(MQ2PIN);
+  
+  Serial.print("🌡️ Temperature: "); Serial.print(temp); Serial.println(" °C");
+  Serial.print("💧 Humidity:    "); Serial.print(hum); Serial.println(" %");
+  Serial.print("☁️ Gas Level:   "); Serial.println(gas);
 
+  String payload = String(temp) + "," + String(hum) + "," + String(gas);
+  if (client.publish(mqtt_topic, payload.c_str())) {
+    Serial.println(" SENT TO SERVER: " + payload);
+  } else {
+    Serial.println(" MQTT SEND FAILED!");
+  }
+  
+  Serial.println(" Next reading in 10 seconds...\n");
+  delay(10000);
 }
 
-
-
-
-
-
-
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print(" MQTT Connecting to ");
+    Serial.println(mqtt_server);
+    if (client.connect("ESP32_Sensor")) {
+      Serial.println(" MQTT Connected!");
+    } else {
+      Serial.print(" Failed! Retrying in 5s...");
+      delay(5000);
+    }
+  }
+}
